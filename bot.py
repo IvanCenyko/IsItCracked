@@ -13,56 +13,67 @@ SEARCH_API = 'https://steamcrackedgames.com/search/?q='
 BASE_URL = 'https://steamcrackedgames.com'
 
 
-# Función para leer un archivo JSON y convertirlo a un diccionario de Python
+# función para leer archivo JSON y convertirlo a un diccionario de Python
 def leer_json(filename):
+    # abre el archivo si existe
     try:
         with open(filename, 'r') as file:
+            # convierte a dict
             data = json.load(file)
+    # si el archivo no existe, devuelve un diccionario vacio
     except:
         data = {}
     return data
 
-# Función para escribir un diccionario de Python a un archivo JSON
+# función para escribir un diccionario de Python a un archivo JSON
 def escribir_json(data, filename):
+    # abro el archivo
     with open(filename, 'w') as file:
+        # escribo el nuevo dict en el json
         json.dump(data, file, indent=4)
 
+# funcion que formatea un string en el formato de busqueda de query URL
 def formatear_busqueda(string):
-    # Convertir otros caracteres especiales según la codificación de URL
     formatted_string = urllib.parse.quote_plus(string)
     return formatted_string
 
+# agrega una URL al usuario
 def agregar_url_a_usuario(user_id:str, url:str, filename:str):
-    # Cargar datos existentes del archivo JSON
+    # Cargar db JSON
     data = leer_json(filename)
 
-    # Verificar si el usuario ya existe en el diccionario
+    # verificar si el usuario ya existe en el diccionario
     if user_id in data:
-        # Verificar si la URL ya está en la lista del usuario
+        # Verifica si la URL ya está en la lista del usuario
         if url in data[user_id]:
-            # Salir de la función sin añadir la URL si ya está presente
+            # Sale de la función sin añadir la URL si ya está
             pass
         else:
-            # Agregar la nueva URL a la lista existente
+            # Agrega la nueva URL a la lista existente
             data[user_id].append(url)
     else:
-        # Crear una nueva entrada para el usuario con la nueva URL
+        # Crea una nueva dict key para el usuario con la nueva URL
         data[user_id] = [url]
 
-    # Escribir los datos actualizados de vuelta al archivo JSON
+    # Escribir los datos actualizados a la db JSON
     escribir_json(data, filename)
 
-
+# funcion que busca los juegos en la API y devuelve bloques de HTML para cada resultado
 def search(game):
+    # URL de busqueda es el link base + la busqueda formateada
     api = SEARCH_API + formatear_busqueda(game)
 
+    # hago request a la API
     search_web = requests.get(api).content
 
+    # scrapeo resultados de la API
     soup = BeautifulSoup(search_web, "html.parser")
     
+    # lista de resultados en bloques html
     list = soup.find_all("tr")
 
     games = []
+    # para cada resultado, saco el bloque que contiene el nombre y el link
     for result in list:
         games.append(result.find("td"))
 
@@ -91,76 +102,82 @@ def handle_help(message):
 # Comando '/add'
 @bot.message_handler(commands=['add'])
 def handle_add(message):
-    # Argumento
+    # argumento
     arg = message.text.replace("/add", "")
 
-    # Si no hay argumento...
+    # si no hay argumento...
     if arg == '' or arg == None:
         bot.reply_to(message, "Falta argumento!")
     
-    # Si hay argumento...
+    # si hay argumento...
     else:
-        # Hacer búsqueda en la API
+        # Hace búsqueda en la API
         games = search(arg)
 
-        # Tomar el nombre de cada resultado para la UI
+        # toma el nombre de cada resultado, para la UI
         results = []
-        # Para cada encuentro
+        # para cada encuentro
         for game in games:
             # Intentar convertirlo en texto (puede no haber resultados, por eso el try)
             try:
                 name = game.find("a").text
+                # apendo a lista de nombres de los resultados
                 results.append(name)
             except AttributeError:
                 pass
 
-        # Si hay varios resultados, pedir al usuario que elija uno
+        # si hay varios resultados, pide al usuario que elija uno
         if len(results) > 1:
-            # Crear un teclado personalizado con los resultados para que el usuario elija
+            # crea un teclado personalizado con los resultados para que el usuario elija
             keyboard = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
-            for i, result in enumerate(results, start=1):
+
+            # arma un iterable con un numero para cada resultado, y lo añado al teclado
+            for i in enumerate(results, start=1):
                 keyboard.add(str(i))
 
-            # Armar string con resultados
+            # arma string con resultados
             ask_string = "Seleccione un resultado:\n"
+            # para cada resultado, le pone el index numerico correspondiente del teclado
             for i in range(len(results)):
                 ask_string += f"{i+1}: {results[i]}\n"
             
-            # Enviar mensaje al usuario pidiendo que elija un resultado
+            # envia mensaje con la lista de resultados al usuario, pidiendo que elija uno
             bot.send_message(message.chat.id, ask_string, reply_markup=keyboard)
 
-            # Registrar el manejador para manejar la elección del usuario
+            # registra el handler para manejar la elección del usuario
             bot.register_next_step_handler(message, handle_add_choice, games, results)
 
         # Si hay un único resultado, mostrarlo directamente
         elif len(results) == 1:
-            # Tomar el URL de la API
+            # toma el URL de la API
             url = BASE_URL + games[0].find("a")["href"]   
-            # Guardarlo a nombre del usuario
+            # guarda a nombre del usuario
             agregar_url_a_usuario(str(message.chat.id), url, "data.json")
 
             bot.send_message(message.chat.id, f"{results[0]} añadido.")
         
-        # Si no hay resultados
+        # si no hay resultados
         else:
             bot.send_message(message.chat.id, "No se encontraron resultados.")
 
-# Función para manejar la elección del usuario al añadir un juego
+# función para manejar la elección del usuario al añadir un juego
 def handle_add_choice(message, games, results):
 
+    # si el usuario responde con un numero...
     try:
-        # Tomar su respuesta del teclado
+        # toma su respuesta del teclado
         choice = int(message.text) - 1
-        # Sacar el URL del juego en la API a partir de la respuesta del usuario
+        # scrapea el URL del juego en la API a partir de la respuesta del usuario
         url = BASE_URL + games[choice].find("a")["href"]
-        # Agregar el URL a los guardados por el usuario
+        # agrega el URL a los guardados por el usuario
         agregar_url_a_usuario(str(message.chat.id), url, "data.json")
 
-        # Cerrar
+        # cierra comando
         bot.send_message(message.chat.id, f"{results[choice]} añadido.", reply_markup=telebot.types.ReplyKeyboardRemove())
-        # Limpiar el manejador de pasos siguientes
+        # Limpiar el step handler
         bot.clear_step_handler(message)
 
+    # si el usuario responde algo no valido, se cancela el comando
     except ValueError:
         bot.send_message(message.chat.id, "Comando cancelado.")
         bot.clear_step_handler(message)
@@ -169,28 +186,29 @@ def handle_add_choice(message, games, results):
 # Comando '/remove'
 @bot.message_handler(commands=['remove'])
 def handle_remove(message):
-    # Leer la lista de URLs del usuario desde el archivo JSON
+    # ee la lista de URLs del usuario desde el archivo JSON
     user_id = str(message.chat.id)
     data = leer_json("data.json")
 
-    # Verificar si el usuario tiene URLs almacenadas
+    # si el usuario tiene juegos almacenados...
     if user_id in data and data[user_id]:
-        # Crear un teclado personalizado con las URLs del usuario para que elija cuál eliminar
+        # crea un teclado personalizado con las URLs del usuario para que elija cuál eliminar
         keyboard = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
+        # para cada URL (juego) del usuario...
         for url in data[user_id]:
-            # armo las opciones solo con el nombre del juego, quitando el resto del url
+            # armo las opciones solo con el nombre del juego, quitando el resto del url almacenado
             keyboard.add(url.replace(f"{BASE_URL}/games/", ""))
 
-        # Enviar mensaje al usuario pidiendo que elija una URL para eliminar
+        # envia mensaje al usuario pidiendo que elija un juego para eliminar de su lista
         bot.send_message(message.chat.id, "Seleccione un juego para eliminar:", reply_markup=keyboard)
 
-        # Registrar el manejador para manejar la elección del usuario
+        # Registra el handler para manejar la elección del usuario
         bot.register_next_step_handler(message, handle_remove_choice)
 
     else:
         bot.reply_to(message, "No tienes juegos almacenados.")
 
-# Función para manejar la elección del usuario al eliminar un juego
+# función para manejar la elección del usuario al eliminar un juego
 def handle_remove_choice(message):
     # Leer la lista de URLs del usuario desde el archivo JSON
     user_id = str(message.chat.id)
@@ -200,24 +218,26 @@ def handle_remove_choice(message):
     
     # si el URL esta en el usuario
     if url_to_remove in data[user_id]:
-        # Remueve la URL de los juegos guardados por el usuario
+        # remueve la URL de los juegos guardados por el usuario
         data[user_id].remove(url_to_remove)
         escribir_json(data, "data.json")
 
-        # Envía un mensaje de confirmación al usuario
+        # envía un mensaje de confirmación al usuario
         bot.send_message(message.chat.id, f"Eliminado correctamente.")
-        # Elimina el teclado personalizado
+        # elimina el teclado personalizado
         bot.send_message(message.chat.id, "Comando 'remove' cerrado.", reply_markup=telebot.types.ReplyKeyboardRemove())
+
+    # si el usuario responde algo erroneo...
     else:
-        # Elimina el teclado personalizado
+        # elimina el teclado personalizado
         bot.send_message(message.chat.id, "Comando 'remove' cerrado. No se hicieron cambios", reply_markup=telebot.types.ReplyKeyboardRemove())
 
-    # Limpiar el manejador de pasos siguientes
+    # limpia el next step handler
     bot.clear_step_handler(message)
 
 @bot.message_handler(commands=['status'])
 def handle_status(message):
-    # leo el json
+    # lee el json
     data = leer_json("data.json")
     # si el usuario no tiene juegos guardados...
     if not str(message.chat.id) in data or data[str(message.chat.id)] == []:
@@ -226,7 +246,7 @@ def handle_status(message):
     else:
         # armo string de lista de juegos
         status_string = 'Juegos marcados:\n'
-        # para cada juego marcado por el usuario, uso su URL
+        # para cada juego marcado por el usuario, usa su URL
         for url in data[str(message.chat.id)]:
             # hago request
             web = requests.get(url).content
@@ -242,14 +262,14 @@ def handle_status(message):
 
         bot.reply_to(message, status_string)
 
-# Manejador para comandos desconocidos
+# handler para comandos desconocidos, se activa si un comando que comienza con '/' no existe
 @bot.message_handler(func=lambda message: True if message.text and message.text.startswith('/') else False)
 def handle_unknown_command(message):
     bot.reply_to(message, "Lo siento, no entendí ese comando. Puedes usar /help para ver la lista de comandos disponibles.")
 
-
-# Función que se ejecutará programáticamente según un horario
+# función que se ejecutará una vez por dia
 def tarea_programada():
+    # leo db
     data = leer_json("data.json")
 
     # para cada usuario
@@ -271,23 +291,23 @@ def tarea_programada():
             status_string += f"-{name}: {status}\n"
         bot.send_message(int(user), status_string)
 
-# Función para ejecutar el bot.polling()
+# thread del bot
 def polling_thread():
     while True:
         bot.polling()
 
 
-# Programación de una tarea para ejecutarse diariamente a las 23:29
+# programación para ejecutarse diariamene
 schedule.every().day.at("16:00").do(tarea_programada)
 
-# Función para ejecutar el schedule.run_pending()
+# thread de funcion que se ejecuta una vez por dia
 def schedule_thread():
     while True:
         schedule.run_pending()
         time.sleep(60)  # Esperar 60 segundos antes de volver a comprobar
 
 
-# Iniciar los threads
+# inician los threads
 polling_thread = threading.Thread(target=polling_thread)
 schedule_thread = threading.Thread(target=schedule_thread)
 
