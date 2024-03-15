@@ -6,9 +6,15 @@ import threading
 from bs4 import BeautifulSoup
 import urllib.parse
 import requests
+import dotenv
+import os
 
-# Token del bot proporcionado por BotFather
-TOKEN = '6553107234:AAFFmugu4WEvdrxFkKxMno7XIFR96qQBzNc'
+#cargo archivo con el token
+dotenv.load_dotenv(".env")
+
+# token del bot
+TOKEN = os.environ.get("TOKEN")
+
 SEARCH_API = 'https://steamcrackedgames.com/search/?q='
 BASE_URL = 'https://steamcrackedgames.com'
 
