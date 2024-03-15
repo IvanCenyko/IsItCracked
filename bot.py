@@ -84,7 +84,7 @@ def handle_start(message):
 @bot.message_handler(commands=['help'])
 def handle_help(message):
     bot.reply_to(message, "Aquí tienes una lista de comandos disponibles:\n"
-                          "/add - Añadir un juego marcado.\n"
+                          "/add <juego> - Añadir un juego marcado.\n"
                           "/remove - Eliminar un juego marcado.\n"
                           "/status - Para ver el status actual de los juegos marcados.")
 
