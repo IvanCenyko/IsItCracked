@@ -87,7 +87,7 @@ bot = telebot.TeleBot(TOKEN)
 def handle_start(message):
     bot.reply_to(message, "¡Hola! Soy un bot que avisa diariamente si los juegos que me digas están o no crackeados. "
                           "Puedes usar los siguientes comandos:\n"
-                          "/add - Para añadir un juego marcado.\n"
+                          "/add <juego> - Para añadir un juego a marcados.\n"
                           "/remove - Para eliminar un juego marcado.\n"
                           "/status - Para ver el status actual de los juegos marcados.")
 
@@ -95,7 +95,7 @@ def handle_start(message):
 @bot.message_handler(commands=['help'])
 def handle_help(message):
     bot.reply_to(message, "Aquí tienes una lista de comandos disponibles:\n"
-                          "/add <juego> - Añadir un juego marcado.\n"
+                          "/add <juego> - Añadir un juego a marcados.\n"
                           "/remove - Eliminar un juego marcado.\n"
                           "/status - Para ver el status actual de los juegos marcados.")
 
