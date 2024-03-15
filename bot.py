@@ -241,7 +241,13 @@ def handle_status(message):
             status_string += f"-{name}: {status}\n"
 
         bot.reply_to(message, status_string)
-    
+
+# Manejador para comandos desconocidos
+@bot.message_handler(func=lambda message: True if message.text and message.text.startswith('/') else False)
+def handle_unknown_command(message):
+    bot.reply_to(message, "Lo siento, no entendí ese comando. Puedes usar /help para ver la lista de comandos disponibles.")
+
+
 # Función que se ejecutará programáticamente según un horario
 def tarea_programada():
     data = leer_json("data.json")
@@ -265,7 +271,6 @@ def tarea_programada():
             status_string += f"-{name}: {status}\n"
         bot.send_message(int(user), status_string)
 
-
 # Función para ejecutar el bot.polling()
 def polling_thread():
     while True:
@@ -281,10 +286,6 @@ def schedule_thread():
         schedule.run_pending()
         time.sleep(60)  # Esperar 60 segundos antes de volver a comprobar
 
-# Manejador para comandos desconocidos
-@bot.message_handler(func=lambda message: True if message.text and message.text.startswith('/') else False)
-def handle_unknown_command(message):
-    bot.reply_to(message, "Lo siento, no entendí ese comando. Puedes usar /help para ver la lista de comandos disponibles.")
 
 # Iniciar los threads
 polling_thread = threading.Thread(target=polling_thread)
