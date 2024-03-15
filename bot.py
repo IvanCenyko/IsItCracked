@@ -304,7 +304,7 @@ def polling_thread():
 
 
 # programación para ejecutarse diariamene
-schedule.every().day.at("16:00").do(tarea_programada)
+schedule.every().day.at("12:00").do(tarea_programada)
 
 # thread de funcion que se ejecuta una vez por dia
 def schedule_thread():
