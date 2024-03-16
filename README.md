@@ -17,27 +17,46 @@ Telegram bot, made with python and the [Telebot](https://github.com/eternnoir/py
 
 ## Run Locally
 
-Clone the project
+### Clone the project
 
 ```bash
   git clone https://github.com/IvanCenyko/IsItCracked.git
 ```
 
-Go to the project directory
+### Go to the project directory
 
 ```bash
   cd IsItCracked
 ```
 
-Install dependencies
+### Install dependencies
 
 ```bash
   pip install -r requirements.txt
 ```
 
-Start the bot
+### Create a .env file with your Telegram bot token
+
+- #### Linux
+  ```bash
+    touch .env
+  ```
+
+### Edit the file
+
+- #### Linux
+  ```bash
+    nano .env
+  ```
+
+### Put your token this way and save the file
+
+```env
+  TOKEN = your_token_here
+```
+
+### Start the bot
 
 ```bash
   python bot.py
 ```
-
