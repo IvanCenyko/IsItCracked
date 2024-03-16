@@ -138,7 +138,7 @@ def handle_add(message):
             keyboard = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
 
             # arma un iterable con un numero para cada resultado, y lo añado al teclado
-            for i in enumerate(results, start=1):
+            for i, result in enumerate(results, start=1):
                 keyboard.add(str(i))
 
             # arma string con resultados
