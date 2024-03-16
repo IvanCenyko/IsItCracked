@@ -20,7 +20,7 @@ BASE_URL = 'https://steamcrackedgames.com'
 
 
 # función para leer archivo JSON y convertirlo a un diccionario de Python
-def leer_json(filename):
+def read_json(filename):
     # abre el archivo si existe
     try:
         with open(filename, 'r') as file:
@@ -32,42 +32,39 @@ def leer_json(filename):
     return data
 
 # función para escribir un diccionario de Python a un archivo JSON
-def escribir_json(data, filename):
+def write_json(data, filename):
     # abro el archivo
     with open(filename, 'w') as file:
         # escribo el nuevo dict en el json
         json.dump(data, file, indent=4)
 
 # funcion que formatea un string en el formato de busqueda de query URL
-def formatear_busqueda(string):
+def search_to_urlformat(string):
     formatted_string = urllib.parse.quote_plus(string)
     return formatted_string
 
 # agrega una URL al usuario
-def agregar_url_a_usuario(user_id:str, url:str, filename:str):
+def add_user_to_game(user_id:int, url:str, game_name:str, filename:str):
     # Cargar db JSON
-    data = leer_json(filename)
+    data = read_json(filename)
 
-    # verificar si el usuario ya existe en el diccionario
-    if user_id in data:
-        # Verifica si la URL ya está en la lista del usuario
-        if url in data[user_id]:
-            # Sale de la función sin añadir la URL si ya está
-            pass
-        else:
-            # Agrega la nueva URL a la lista existente
-            data[user_id].append(url)
-    else:
-        # Crea una nueva dict key para el usuario con la nueva URL
-        data[user_id] = [url]
-
+    # si el juego esta en la lista y no tiene asociado al usuario
+    if game_name in data and not user_id in data[game_name]["users"]:
+        data[game_name]["users"].append(user_id)
+    
+    # si el juego aun no esta registrado
+    elif game_name not in data:
+        # lo registro con el usuario que lo pidio, y el url
+        data[game_name]["users"] = [user_id]
+        data[game_name]["url"] = [url]
+    
     # Escribir los datos actualizados a la db JSON
-    escribir_json(data, filename)
+    write_json(data, filename)
 
 # funcion que busca los juegos en la API y devuelve bloques de HTML para cada resultado
 def search(game):
     # URL de busqueda es el link base + la busqueda formateada
-    api = SEARCH_API + formatear_busqueda(game)
+    api = SEARCH_API + search_to_urlformat(game)
 
     # hago request a la API
     search_web = requests.get(api).content
@@ -158,7 +155,7 @@ def handle_add(message):
             # toma el URL de la API
             url = BASE_URL + games[0].find("a")["href"]   
             # guarda a nombre del usuario
-            agregar_url_a_usuario(str(message.chat.id), url, "data.json")
+            add_user_to_game(str(message.chat.id), url, "data.json")
 
             bot.send_message(message.chat.id, f"{results[0]} añadido.")
         
@@ -176,7 +173,7 @@ def handle_add_choice(message, games, results):
         # scrapea el URL del juego en la API a partir de la respuesta del usuario
         url = BASE_URL + games[choice].find("a")["href"]
         # agrega el URL a los guardados por el usuario
-        agregar_url_a_usuario(str(message.chat.id), url, "data.json")
+        add_user_to_game(str(message.chat.id), url, "data.json")
 
         # cierra comando
         bot.send_message(message.chat.id, f"{results[choice]} añadido.", reply_markup=telebot.types.ReplyKeyboardRemove())
@@ -194,7 +191,7 @@ def handle_add_choice(message, games, results):
 def handle_remove(message):
     # ee la lista de URLs del usuario desde el archivo JSON
     user_id = str(message.chat.id)
-    data = leer_json("data.json")
+    data = read_json("data.json")
 
     # si el usuario tiene juegos almacenados...
     if user_id in data and data[user_id]:
@@ -218,7 +215,7 @@ def handle_remove(message):
 def handle_remove_choice(message):
     # Leer la lista de URLs del usuario desde el archivo JSON
     user_id = str(message.chat.id)
-    data = leer_json("data.json")
+    data = read_json("data.json")
     # Obtiene la URL del juego seleccionado
     url_to_remove = BASE_URL + "/games/" + message.text
     
@@ -226,7 +223,7 @@ def handle_remove_choice(message):
     if url_to_remove in data[user_id]:
         # remueve la URL de los juegos guardados por el usuario
         data[user_id].remove(url_to_remove)
-        escribir_json(data, "data.json")
+        write_json(data, "data.json")
 
         # envía un mensaje de confirmación al usuario
         bot.send_message(message.chat.id, f"Eliminado correctamente.")
@@ -244,7 +241,7 @@ def handle_remove_choice(message):
 @bot.message_handler(commands=['status'])
 def handle_status(message):
     # lee el json
-    data = leer_json("data.json")
+    data = read_json("data.json")
     # si el usuario no tiene juegos guardados...
     if not str(message.chat.id) in data or data[str(message.chat.id)] == []:
         bot.reply_to(message, "No hay juegos guardados.")
@@ -276,7 +273,7 @@ def handle_unknown_command(message):
 # función que se ejecutará una vez por dia
 def tarea_programada():
     # leo db
-    data = leer_json("data.json")
+    data = read_json("data.json")
 
     # para cada usuario
     for user in data:
@@ -300,7 +297,7 @@ def tarea_programada():
 # thread del bot
 def polling_thread():
     while True:
-        bot.polling()
+        bot.infinity_polling()
 
 
 # programación para ejecutarse diariamene
