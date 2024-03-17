@@ -30,7 +30,7 @@ class Search(View):
         # configura webdriver
         options = webdriver.ChromeOptions()
         options.add_argument('--headless=new')
-        #options.binary_location = "../chromedriver_linux64/chromedriver"
+        options.binary_location = "../chromedriver_linux64/chromedriver"
         browser = webdriver.Chrome(options=options)
         
         # abre navegador y...
