@@ -30,8 +30,9 @@ class Search(View):
         # configura webdriver
         options = webdriver.ChromeOptions()
         options.add_argument('--headless=new')
+        options.binary_location = "../chromedriver_linux64/chromedriver"
         browser = webdriver.Chrome(options=options)
-
+        
         # abre navegador y...
         with browser as browser:
 
@@ -96,7 +97,7 @@ class GameStatus(View):
         
         if "Unreleased" in status:
             status = "Unreleased"
-            
+
         # arma dict y devuelve json con el status
         data = {"status": status}
         return JsonResponse(data)
