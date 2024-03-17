@@ -100,7 +100,9 @@ class GameStatus(View):
 
         # arma dict y devuelve json con el status
         data = {"status": status}
-        return JsonResponse(data)
+
+        import os
+        return JsonResponse({"nashe": os.getcwd()})
 
         
     def post(self, request):
