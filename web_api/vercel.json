@@ -1,4 +1,5 @@
 {
+    "installCommand": "npm install selenium-webdriver",
     "builds":[
                 {"src": "web_api/wsgi.py",
                 "use": "@vercel/python"
