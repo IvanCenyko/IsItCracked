@@ -10,7 +10,9 @@ from selenium import webdriver
 
 from bs4 import BeautifulSoup
 import urllib.parse
+from pathlib import Path
 import requests
+import os
 
 # funcion que formatea un string en el formato de busqueda de query URL
 def search_to_urlformat(string):
@@ -27,10 +29,17 @@ class Search(View):
         # parametros de busqueda dados por el usuario
         search_params = search_to_urlformat(request.GET["search"])
 
+        # Obtiene el directorio actual del archivo en el que se está ejecutando el script
+        current_directory = Path(__file__).resolve().parent
+
+        # Ruta al directorio donde se encuentra chromedriver
+        chromedriver_path = str(current_directory / 'chromedriver_linux64' / 'chromedriver')
+
         # configura webdriver
         options = webdriver.ChromeOptions()
         options.add_argument('--headless=new')
-        options.binary_location = "../chromedriver_linux64/chromedriver"
+        #options.binary_location = "../chromedriver_linux64/chromedriver"
+        options.binary_location = chromedriver_path
         browser = webdriver.Chrome(options=options)
         
         # abre navegador y...
@@ -101,8 +110,7 @@ class GameStatus(View):
         # arma dict y devuelve json con el status
         data = {"status": status}
 
-        import os
-        return JsonResponse({"nashe": os.getcwd()})
+        return JsonResponse(data)
 
         
     def post(self, request):
