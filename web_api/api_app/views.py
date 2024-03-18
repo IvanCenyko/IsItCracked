@@ -36,13 +36,13 @@ class Search(View):
         chromedriver_path = str(current_directory / 'chromedriver_linux64' / 'chromedriver')
 
         # configura webdriver
-        options = webdriver.ChromeOptions()
-        options.add_argument('--disable-gpu')
-        options.add_argument('--no-sandbox')
+        options = webdriver.FirefoxOptions()
+        #options.add_argument('--disable-gpu')
+        #options.add_argument('--no-sandbox')
         options.add_argument('--headless=new')
         #options.binary_location = "../chromedriver_linux64/chromedriver"
-        options.binary_location = chromedriver_path
-        browser = webdriver.Chrome(options=options)
+        #options.binary_location = chromedriver_path
+        browser = webdriver.Firefox(options=options)
         
         # abre navegador y...
         with browser as browser:
