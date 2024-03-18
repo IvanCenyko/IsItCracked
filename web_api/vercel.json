@@ -1,13 +1,13 @@
 {
     "installCommand": "npm install selenium-webdriver",
     "builds":[
-                {"src": "web_api/wsgi.py",
+                {"src": "web_api/asgi.py",
                 "use": "@vercel/python"
                 }
     ],
     "routes":[
         {"src": "/(.*)",
-        "dest": "web_api/wsgi.py"
+        "dest": "web_api/asgi.py"
         }
     ]
 }
