@@ -37,8 +37,8 @@ class Search(View):
 
         # configura webdriver
         options = webdriver.ChromeOptions()
-        chrome_options.add_argument('--disable-gpu')
-        chrome_options.add_argument('--no-sandbox')
+        options.add_argument('--disable-gpu')
+        options.add_argument('--no-sandbox')
         options.add_argument('--headless=new')
         #options.binary_location = "../chromedriver_linux64/chromedriver"
         options.binary_location = chromedriver_path
