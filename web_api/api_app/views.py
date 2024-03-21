@@ -2,12 +2,6 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from django.views import View
 
-from selenium.webdriver.support import expected_conditions
-from selenium.common.exceptions import TimeoutException
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.common.by import By
-from selenium import webdriver
-
 from bs4 import BeautifulSoup
 import urllib.parse
 from pathlib import Path
@@ -23,61 +17,35 @@ class Search(View):
 
     def __init__(self):
 
-        self.SEARCH_URL = "https://omycrack.com/search?q=" 
+        self.SEARCH_URL = "https://omycrack.com/search?q="
+        self.FITGIRL_URL = "https://fitgirl-repacks.site/?s="
 
     def get(self, request):
-        # parametros de busqueda dados por el usuario
-        search_params = search_to_urlformat(request.GET["search"])
 
-        # Obtiene el directorio actual del archivo en el que se está ejecutando el script
-        current_directory = Path(__file__).resolve().parent
+        # si no hay busqueda
+        if not request.GET["search"]:
+            return JsonResponse({"status": False})
 
-        # Ruta al directorio donde se encuentra chromedriver
-        chromedriver_path = str(current_directory / 'chromedriver_linux64' / 'chromedriver')
+        # toma html de la web
+        search = request.GET["search"]
+        full_web = requests.get(self.FITGIRL_URL + search).content
+        soup = BeautifulSoup(full_web, "html.parser")
 
-        # configura webdriver
-        options = webdriver.FirefoxOptions()
-        #options.add_argument('--disable-gpu')
-        #options.add_argument('--no-sandbox')
-        options.add_argument('--headless=new')
-        #options.binary_location = "../chromedriver_linux64/chromedriver"
-        #options.binary_location = chromedriver_path
-        browser = webdriver.Firefox(options=options)
+        # filtro los resultados, c/u es un article
+        results_block = soup.find_all("article")
+
+        # para cada resultado...
+        data = {}
+        for result in results_block:
+            # tomo el titulo h1
+            result_title = result.find("h1")
+            # saco el titulo del juego
+            title = result_title.text
+            # saco el url
+            url = result_title.find("a")["href"]
+            # lo guardo en el json a devolver
+            data[title] = url
         
-        # abre navegador y...
-        with browser as browser:
-
-            # request a la websource
-            browser.get(self.SEARCH_URL + search_params)
-            
-            try:
-                # espera a que aparezcan los resultados
-                wait = WebDriverWait(browser, 20)
-                wait.until(expected_conditions.presence_of_element_located((By.XPATH, "/html/body/div/div[2]/div/div[2]/div/div[2]/section[2]/div/div/div[2]")))
-            except TimeoutException:
-                return JsonResponse({"results": None})
-            
-            # arma un bloque html con los resultados
-            results_block = browser.find_element(By.XPATH, "/html/body/div/div[2]/div/div[2]/div/div[2]/section[2]/div/div").get_attribute("innerHTML")
-            
-        # sopa de los resultados
-        soup = BeautifulSoup(results_block, "html.parser")
-
-        # hace una lista, cada uno es un resultado
-        results = soup.find_all("div", class_="col-lg-3 col-md-6 col-sm-6 col-xs-12")
-
-        # arma template de data
-        data = {"results": {}}
-        # para cada resultado en bloque html
-        for result in results:
-            
-            # toma url y nombre del juego
-            url = result.find("a")["href"]
-            name = result.find("h4").text
-
-            # hace una dict key con el nombre del juego y el url
-            data["results"][name] = url
-
         return JsonResponse(data)
 
     def post(self, request):
