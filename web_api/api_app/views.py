@@ -170,7 +170,7 @@ class CrackedSearchIGG(View):
 
         # igg games games
         database_web = requests.get(self.IGGSEARCH).content
-
+        return (database_web)
         # list of all cracked games on IGG
         all_games = BeautifulSoup(database_web, "html.parser").find_all("li")
         
