@@ -4,7 +4,6 @@ beautifulsoup4==4.12.3
 bs4==0.0.2
 certifi==2024.2.2
 charset-normalizer==3.3.2
-cloudscraper==1.2.71
 Django==4.2
 exceptiongroup==1.2.0
 h11==0.14.0

@@ -155,7 +155,7 @@ class CrackedSearchFitgirl(View):
         
 class CrackedSearchIGG(View):
     def __init__(self):
-        self.IGGSEARCH = "https://igg-games.com/list-9163969989-game.html"
+        self.IGGSEARCH = "http://51.15.25.79/list-9163969989-game.html"
 
     def get(self, request):
 
@@ -168,12 +168,9 @@ class CrackedSearchIGG(View):
         # normalized user's search
         search = normalize(request.GET["search"])
 
-        import cloudscraper
-
-        request_handler = cloudscraper.create_scraper()
 
         # igg games games
-        database_web = request_handler.get(self.IGGSEARCH).content
+        database_web = requests.get(self.IGGSEARCH).content
         # list of all cracked games on IGG
         all_games = BeautifulSoup(database_web, "html.parser").find_all("li")
         
