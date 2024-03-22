@@ -170,10 +170,10 @@ class CrackedSearchIGG(View):
 
         import cloudscraper
 
-        requests = cloudscraper.create_scraper()
+        request_handler = cloudscraper.create_scraper()
 
         # igg games games
-        database_web = requests.get(self.IGGSEARCH).content
+        database_web = request_handler.get(self.IGGSEARCH).content
         # list of all cracked games on IGG
         all_games = BeautifulSoup(database_web, "html.parser").find_all("li")
         
