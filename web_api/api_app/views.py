@@ -168,9 +168,12 @@ class CrackedSearchIGG(View):
         # normalized user's search
         search = normalize(request.GET["search"])
 
+        import cloudscraper
+
+        requests = cloudscraper.create_scraper()
+
         # igg games games
         database_web = requests.get(self.IGGSEARCH).content
-        return HttpResponse(database_web)
         # list of all cracked games on IGG
         all_games = BeautifulSoup(database_web, "html.parser").find_all("li")
         
