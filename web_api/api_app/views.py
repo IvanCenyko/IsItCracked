@@ -163,6 +163,8 @@ class CrackedSearchIGG(View):
         if not request.GET["search"]:
             return JsonResponse({"status": False})
         
+        ### GET RESULTS ###
+
         # normalized user's search
         search = normalize(request.GET["search"])
 
@@ -187,6 +189,8 @@ class CrackedSearchIGG(View):
             # append to dict
             games_list["results"].append({"game": game, "url": url})
 
+        ### DELETE NOT COMPLETE MATCHING RESULTS ###
+            
         # for every cracked game on dict
         to_delete = []
         for element in games_list["results"]:
