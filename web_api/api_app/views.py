@@ -168,7 +168,6 @@ class CrackedSearchIGG(View):
         # normalized user's search
         search = normalize(request.GET["search"])
 
-
         # igg games games
         database_web = requests.get(self.IGGSEARCH).content
         # list of all cracked games on IGG
@@ -186,28 +185,25 @@ class CrackedSearchIGG(View):
             # take the url
             a = element.find("a")
             url = a["href"]
-            # append to dict
-            games_list["results"].append({"game": game, "url": url})
 
-        ### DELETE NOT COMPLETE MATCHING RESULTS ###
-            
-        # for every cracked game on dict
-        to_delete = []
-        for element in games_list["results"]:
+
+            ### DISCARD NOT MATCHING RESULTS ###
+
             # normalize its name
-            game_normalized = normalize(element["game"])
+            game_normalized = normalize(game)
+            # bool for filter
+            game_status = True
             # for every word in the search
             for word in search.split(" "):
                 # if it's not on the cracked game of this iteration
                 if not word in game_normalized:
-                    # append to delete list
-                    to_delete.append(element)
-                    break
-        
-        # delete every game that doesn't match all search elements
-        for i in to_delete:
-            games_list["results"].remove(i)
-        
+                    # the game is not valid to return on response
+                    game_status = False
+            # if the words on the game match with the user's search
+            if game_status:
+                # append to dict
+                games_list["results"].append({"game": game, "url": url})
+
         # response
         return JsonResponse(games_list)
 
