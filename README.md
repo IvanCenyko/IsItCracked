@@ -60,9 +60,4 @@ Telegram bot, made with python and the [Telebot](https://github.com/eternnoir/py
   python bot.py
 ```
 
-Start the bot
-
-```bash
-  python bot.py
-```
 
